@@ -98,7 +98,53 @@ func (dt DataType) ByteLen() int {
 	return dt.BitLen() / 8
 }
 
-func Read(filename string) (data []float64, err error) {
+func Read(r io.Reader, dt DataType) ([]float64, error) {
+	switch dt {
+	case DSA:
+		i16s, err := readDSA(r)
+		if err != nil {
+			return nil, err
+		}
+		return int16sToFloat64s(i16s), nil
+	case DFA:
+		f32s, err := readDFA(r)
+		if err != nil {
+			return nil, err
+		}
+		return float32sToFloat64s(f32s), nil
+	case DDA:
+		f64s, err := readDDA(r)
+		if err != nil {
+			return nil, err
+		}
+		return f64s, nil
+	case DSB:
+		i16s, err := readDSB(r)
+		if err != nil {
+			return nil, err
+		}
+		return int16sToFloat64s(i16s), nil
+	case DFB:
+		f32s, err := readDFB(r)
+		if err != nil {
+			return nil, err
+		}
+		return float32sToFloat64s(f32s), nil
+	case DDB:
+		f64s, err := readDDB(r)
+		if err != nil {
+			return nil, err
+		}
+		return f64s, nil
+	default:
+		return nil, errors.New("Unknown DataType")
+	}
+}
+
+// ReadFromFile reads .DXX file.
+// This func determines the data type from the filename extension and reads that data.
+// The return type is []float64 to make the data easier to handle.
+func ReadFromFile(filename string) ([]float64, error) {
 	f, err := os.Open(filename)
 	defer f.Close()
 	if err != nil {
@@ -109,47 +155,7 @@ func Read(filename string) (data []float64, err error) {
 	if err != nil {
 		return nil, err
 	}
-
-	switch dt {
-	case DSA:
-		i16s, err := readDSA(f)
-		if err != nil {
-			return nil, err
-		}
-		return int16sToFloat64s(i16s), nil
-	case DFA:
-		f32s, err := readDFA(f)
-		if err != nil {
-			return nil, err
-		}
-		return float32sToFloat64s(f32s), nil
-	case DDA:
-		f64s, err := readDDA(f)
-		if err != nil {
-			return nil, err
-		}
-		return f64s, nil
-	case DSB:
-		i16s, err := readDSB(f)
-		if err != nil {
-			return nil, err
-		}
-		return int16sToFloat64s(i16s), nil
-	case DFB:
-		f32s, err := readDFB(f)
-		if err != nil {
-			return nil, err
-		}
-		return float32sToFloat64s(f32s), nil
-	case DDB:
-		f64s, err := readDDB(f)
-		if err != nil {
-			return nil, err
-		}
-		return f64s, nil
-	default:
-		return nil, errors.New("Unknown DataType")
-	}
+	return Read(f, dt)
 }
 
 func readDSA(r io.Reader) ([]int16, error) {
@@ -246,6 +252,13 @@ func readDDB(r io.Reader) ([]float64, error) {
 		}
 		data = append(data, v)
 	}
+}
+
+// Writes writes data to .DXX file.
+// This func determines the data type from the filename extension and writes the data to the file.
+// The return type is []float64 to make the data easier to handle.
+func WriteToFile(filename string, data []float64) error {
+	// TODO
 }
 
 func ext(path string) (string) {
