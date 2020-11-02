@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/tetsuzawa/dxx/typeconverter"
 )
 
 const (
@@ -99,13 +101,13 @@ func Read(r io.Reader, dt DataType) ([]float64, error) {
 		if err != nil {
 			return nil, err
 		}
-		return int16sToFloat64s(i16s), nil
+		return typeconverter.Int16sToFloat64s(i16s), nil
 	case DFA:
 		f32s, err := readDFA(r)
 		if err != nil {
 			return nil, err
 		}
-		return float32sToFloat64s(f32s), nil
+		return typeconverter.Float32sToFloat64s(f32s), nil
 	case DDA:
 		f64s, err := readDDA(r)
 		if err != nil {
@@ -117,13 +119,13 @@ func Read(r io.Reader, dt DataType) ([]float64, error) {
 		if err != nil {
 			return nil, err
 		}
-		return int16sToFloat64s(i16s), nil
+		return typeconverter.Int16sToFloat64s(i16s), nil
 	case DFB:
 		f32s, err := readDFB(r)
 		if err != nil {
 			return nil, err
 		}
-		return float32sToFloat64s(f32s), nil
+		return typeconverter.Float32sToFloat64s(f32s), nil
 	case DDB:
 		f64s, err := readDDB(r)
 		if err != nil {
@@ -202,7 +204,7 @@ func readDSB(r io.Reader) ([]int16, error) {
 			}
 			return data, err
 		}
-		v, err := bytesToInt16(buf)
+		v, err := typeconverter.BytesToInt16(buf)
 		if err != nil {
 			return data, err
 		}
@@ -221,7 +223,7 @@ func readDFB(r io.Reader) ([]float32, error) {
 			}
 			return data, err
 		}
-		v, err := bytesToFloat32(buf)
+		v, err := typeconverter.BytesToFloat32(buf)
 		if err != nil {
 			return data, err
 		}
@@ -240,7 +242,7 @@ func readDDB(r io.Reader) ([]float64, error) {
 			}
 			return data, err
 		}
-		v, err := bytesToFloat64(buf)
+		v, err := typeconverter.BytesToFloat64(buf)
 		if err != nil {
 			return data, err
 		}
@@ -251,15 +253,15 @@ func readDDB(r io.Reader) ([]float64, error) {
 func Write(r io.Writer, dt DataType, data []float64) error {
 	switch dt {
 	case DSA:
-		return writeDSA(r, float64sToInt16s(data))
+		return writeDSA(r, typeconverter.Float64sToInt16s(data))
 	case DFA:
-		return writeDFA(r, float64sToFloat32s(data))
+		return writeDFA(r, typeconverter.Float64sToFloat32s(data))
 	case DDA:
 		return writeDDA(r, data)
 	case DSB:
-		return writeDSB(r, float64sToInt16s(data))
+		return writeDSB(r, typeconverter.Float64sToInt16s(data))
 	case DFB:
-		return writeDFB(r, float64sToFloat32s(data))
+		return writeDFB(r, typeconverter.Float64sToFloat32s(data))
 	case DDB:
 		return writeDDB(r, data)
 	default:
@@ -313,7 +315,7 @@ func writeDDA(r io.Writer, data []float64) error {
 
 func writeDSB(r io.Writer, data []int16) error {
 	for _, v := range data {
-		buf, err := int16ToBytes(v)
+		buf, err := typeconverter.Int16ToBytes(v)
 		if err != nil {
 			return err
 		}
@@ -327,7 +329,7 @@ func writeDSB(r io.Writer, data []int16) error {
 
 func writeDFB(r io.Writer, data []float32) error {
 	for _, v := range data {
-		buf, err := float32ToBytes(v)
+		buf, err := typeconverter.Float32ToBytes(v)
 		if err != nil {
 			return err
 		}
@@ -341,7 +343,7 @@ func writeDFB(r io.Writer, data []float32) error {
 
 func writeDDB(r io.Writer, data []float64) error {
 	for _, v := range data {
-		buf, err := float64ToBytes(v)
+		buf, err := typeconverter.Float64ToBytes(v)
 		if err != nil {
 			return err
 		}
