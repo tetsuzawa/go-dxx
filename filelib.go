@@ -14,9 +14,12 @@ import (
 )
 
 const (
-	BitLenShort  = 16
-	BitLenFloat  = 32
-	BitLenDouble = 64
+	BitLenShort   = 16
+	BitLenFloat   = 32
+	BitLenDouble  = 64
+	ByteLenShort  = 2
+	ByteLenFloat  = 4
+	ByteLenDouble = 8
 )
 
 var (
@@ -194,7 +197,7 @@ func readDDA(r io.Reader) ([]float64, error) {
 }
 
 func readDSB(r io.Reader) ([]int16, error) {
-	buf := make([]byte, BitLenShort)
+	buf := make([]byte, ByteLenShort)
 	var data []int16
 	for {
 		_, err := io.ReadFull(r, buf)
@@ -213,7 +216,7 @@ func readDSB(r io.Reader) ([]int16, error) {
 }
 
 func readDFB(r io.Reader) ([]float32, error) {
-	buf := make([]byte, BitLenFloat)
+	buf := make([]byte, ByteLenFloat)
 	var data []float32
 	for {
 		_, err := io.ReadFull(r, buf)
@@ -232,7 +235,7 @@ func readDFB(r io.Reader) ([]float32, error) {
 }
 
 func readDDB(r io.Reader) ([]float64, error) {
-	buf := make([]byte, BitLenDouble)
+	buf := make([]byte, ByteLenDouble)
 	var data []float64
 	for {
 		_, err := io.ReadFull(r, buf)
