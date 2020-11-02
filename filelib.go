@@ -133,7 +133,7 @@ func Read(r io.Reader, dt DataType) ([]float64, error) {
 		}
 		return f64s, nil
 	default:
-		return nil, errors.New(" ")
+		return nil, ErrUnknownDataType
 	}
 }
 
