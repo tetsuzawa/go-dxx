@@ -3,6 +3,7 @@ package dxx
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -10,21 +11,14 @@ import (
 	"strings"
 )
 
-//type DataType string
-//
-//const (
-//	DSA DataType = "DSA"
-//	DFA DataType = "DFA"
-//	DDA DataType = "DDA"
-//	DSB DataType = "DSB"
-//	DFB DataType = "DFB"
-//	DDB DataType = "DDB"
-//)
-
 const (
 	BitLenShort  = 16
 	BitLenFloat  = 32
 	BitLenDouble = 64
+)
+
+var (
+	ErrUnknownDataType = errors.New("unknown data type")
 )
 
 type DataType int
@@ -53,7 +47,7 @@ func (dt DataType) String() string {
 	case DDB:
 		return "DDB"
 	default:
-		return "unkwon"
+		return "unknown data type" // unreachable code
 	}
 }
 
@@ -72,7 +66,7 @@ func StringToDataType(s string) (DataType, error) {
 	case "DDB":
 		return DDB, nil
 	default:
-		return 0, errors.New("Unknown DataType")
+		return 0, ErrUnknownDataType
 	}
 }
 
@@ -91,7 +85,7 @@ func (dt DataType) BitLen() int {
 	case DDB:
 		return BitLenDouble
 	default:
-		return -1 // will not be called
+		return -1 // unreachable code
 	}
 }
 func (dt DataType) ByteLen() int {
@@ -137,7 +131,7 @@ func Read(r io.Reader, dt DataType) ([]float64, error) {
 		}
 		return f64s, nil
 	default:
-		return nil, errors.New("Unknown DataType")
+		return nil, errors.New(" ")
 	}
 }
 
@@ -254,13 +248,113 @@ func readDDB(r io.Reader) ([]float64, error) {
 	}
 }
 
+func Write(r io.Writer, dt DataType, data []float64) error {
+	switch dt {
+	case DSA:
+		return writeDSA(r, float64sToInt16s(data))
+	case DFA:
+		return writeDFA(r, float64sToFloat32s(data))
+	case DDA:
+		return writeDDA(r, data)
+	case DSB:
+		return writeDSB(r, float64sToInt16s(data))
+	case DFB:
+		return writeDFB(r, float64sToFloat32s(data))
+	case DDB:
+		return writeDDB(r, data)
+	default:
+		return ErrUnknownDataType
+	}
+}
+
 // Writes writes data to .DXX file.
 // This func determines the data type from the filename extension and writes the data to the file.
 // The return type is []float64 to make the data easier to handle.
 func WriteToFile(filename string, data []float64) error {
-	// TODO
+	f, err := os.Create(filename)
+	defer f.Close()
+	if err != nil {
+		return err
+	}
+
+	dt, err := StringToDataType(ext(filename))
+	if err != nil {
+		return err
+	}
+	return Write(f, dt, data)
 }
 
-func ext(path string) (string) {
+func writeDSA(r io.Writer, data []int16) error {
+	for _, v := range data {
+		if _, err := fmt.Fprintf(r, "%d\n", v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeDFA(r io.Writer, data []float32) error {
+	for _, v := range data {
+		if _, err := fmt.Fprintf(r, "%e\n", v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeDDA(r io.Writer, data []float64) error {
+	for _, v := range data {
+		if _, err := fmt.Fprintf(r, "%e\n", v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeDSB(r io.Writer, data []int16) error {
+	for _, v := range data {
+		buf, err := int16ToBytes(v)
+		if err != nil {
+			return err
+		}
+		_, err = r.Write(buf)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeDFB(r io.Writer, data []float32) error {
+	for _, v := range data {
+		buf, err := float32ToBytes(v)
+		if err != nil {
+			return err
+		}
+		_, err = r.Write(buf)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeDDB(r io.Writer, data []float64) error {
+	for _, v := range data {
+		buf, err := float64ToBytes(v)
+		if err != nil {
+			return err
+		}
+		_, err = r.Write(buf)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ext returns the path of extension *without* dot.
+// eg: ext(/path/to/file.aaa) -> aaa
+func ext(path string) string {
 	return strings.TrimPrefix(filepath.Ext(path), ".")
 }
