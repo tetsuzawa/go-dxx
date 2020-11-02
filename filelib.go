@@ -26,6 +26,8 @@ var (
 	ErrUnknownDataType = errors.New("unknown data type")
 )
 
+// DataType is type of DXX.
+// DataType behaves as enum.
 type DataType int
 
 const (
@@ -37,6 +39,7 @@ const (
 	DDB
 )
 
+// String returns data type name as string.
 func (dt DataType) String() string {
 	switch dt {
 	case DSA:
@@ -56,6 +59,8 @@ func (dt DataType) String() string {
 	}
 }
 
+// StringToDataType determines data type from specified string.
+// If the specified string is invalid, this func returns error.
 func StringToDataType(s string) (DataType, error) {
 	switch s {
 	case "DSA":
@@ -75,6 +80,7 @@ func StringToDataType(s string) (DataType, error) {
 	}
 }
 
+// BitLen returns the bit length of data type.
 func (dt DataType) BitLen() int {
 	switch dt {
 	case DSA:
@@ -93,10 +99,29 @@ func (dt DataType) BitLen() int {
 		return -1 // unreachable code
 	}
 }
+
+// ByteLen returns the byte length of data type.
 func (dt DataType) ByteLen() int {
-	return dt.BitLen() / 8
+	switch dt {
+	case DSA:
+		return ByteLenShort
+	case DFA:
+		return ByteLenFloat
+	case DDA:
+		return ByteLenDouble
+	case DSB:
+		return ByteLenShort
+	case DFB:
+		return ByteLenFloat
+	case DDB:
+		return ByteLenDouble
+	default:
+		return -1 // unreachable code
+	}
 }
 
+// Read reads data from reader as specified data type.
+// The return type is []float64 to make the data easier to handle.
 func Read(r io.Reader, dt DataType) ([]float64, error) {
 	switch dt {
 	case DSA:
@@ -253,6 +278,8 @@ func readDDB(r io.Reader) ([]float64, error) {
 	}
 }
 
+// Writes writes data to writer as specified data type.
+// The return type is []float64 to make the data easier to handle.
 func Write(r io.Writer, dt DataType, data []float64) error {
 	switch dt {
 	case DSA:
