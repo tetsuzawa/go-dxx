@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tetsuzawa/dxx/typeconverter"
+	"github.com/tetsuzawa/go-dxx/dxx/typeconverter"
 )
 
 const (
