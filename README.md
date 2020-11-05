@@ -1,2 +1,3 @@
-# go-dxx
-.DXX io library written in Go
+# go-soundlib
+
+go-soundlib is a sound utility library written in Go
