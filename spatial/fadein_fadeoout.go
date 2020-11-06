@@ -2,27 +2,13 @@ package spatial
 
 import (
 	"fmt"
-	"log"
-	"math"
-	"os"
-
 	"github.com/mjibson/go-dsp/dsputils"
 	"github.com/mjibson/go-dsp/fft"
 	"github.com/tetsuzawa/go-dxx/dxx"
+	"log"
+	"math"
+	"os"
 )
-
-//var (
-//subject      = ""
-//inName       = ""
-//moveWidth    = 10
-//repeatTimes  = 1
-//moveVelocity = 10
-//moveTime     = int(moveWidth * 1000.0 / moveVelocity) // [deg]/[deg/s] * 1000 = [ms]
-//endAngle     = 45
-//outDir       = ""
-//moveAngle    = moveWidth*repeatTimes + 1
-//samplingFreq = 48 //[kHz]
-//)
 
 const (
 	repeatTimes  = 1
@@ -38,12 +24,9 @@ func FadeinFadeout(subject, soundName string, moveWidth, moveVelocity, endAngle 
 
 	// 1度動くのに必要なサンプル数
 	// [ms]*[kHz] / [deg] = [sample/deg]
-	var dwellingSamples int = int(moveTime*samplingFreq/float64(moveWidth)*float64(repeatTimes)*2 + 1)
-	var durationSamples int = int(float64(dwellingSamples) * 63.0 / 64.0)
-	var overlapSamples int = int(float64(dwellingSamples) * 1.0 / 64.0)
-
-	fmt.Println(overlapSamples)
-	os.Exit(1)
+	var dwellingSamples int = int(moveTime) * samplingFreq / (moveWidth*repeatTimes*2 + 1)
+	var durationSamples int = dwellingSamples * 63 / 64
+	var overlapSamples int = dwellingSamples * 1 / 64
 
 	// Fourier Series Window Coefficient
 	a0 := (1 + math.Sqrt(2)) / 4
@@ -101,7 +84,6 @@ func FadeinFadeout(subject, soundName string, moveWidth, moveVelocity, endAngle 
 				soundSLTF = soundSLTF[len(SLTF)*2 : len(soundSLTF)-len(SLTF)*2]
 				// 前の角度のfadeout部と現在の角度のfadein部の加算
 				fadein := make([]float64, overlapSamples)
-				fmt.Println(len(moveOut), (durationSamples+overlapSamples)*angle+overlapSamples, len(moveOut))
 				for i := range fadein {
 					//fadein[i] = soundSLTF[len(soundSLTF)-overlapSamples+i] * fadeoutFilt[i]
 					fadein[i] = soundSLTF[i] * fadeinFilt[i]
@@ -143,8 +125,6 @@ func FadeinFadeout(subject, soundName string, moveWidth, moveVelocity, endAngle 
 // LinearConvolution return linear convolution. len: len(x) + len(y) - 1
 func LinearConvolution(x, y []complex128) []complex128 {
 	convLen := len(x) + len(y) - 1
-	//xPad := append(x, make([]complex128, convLen-len(x))...)
-	//yPad := append(y, make([]complex128, convLen-len(y))...)
 	xPad := dsputils.ZeroPad(x, convLen)
 	yPad := dsputils.ZeroPad(y, convLen)
 	if len(xPad) != convLen {
