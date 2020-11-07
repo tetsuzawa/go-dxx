@@ -2,9 +2,11 @@ package dxx
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -122,40 +124,40 @@ func (dt DataType) ByteLen() int {
 
 // Read reads data from reader as specified data type.
 // The return type is []float64 to make the data easier to handle.
-func Read(r io.Reader, dt DataType) ([]float64, error) {
+func Read(r io.Reader, dt DataType, length int) ([]float64, error) {
 	switch dt {
 	case DSA:
-		i16s, err := readDSA(r)
+		i16s, err := readDSA(r, length)
 		if err != nil {
 			return nil, err
 		}
 		return typeconverter.Int16sToFloat64s(i16s), nil
 	case DFA:
-		f32s, err := readDFA(r)
+		f32s, err := readDFA(r, length)
 		if err != nil {
 			return nil, err
 		}
 		return typeconverter.Float32sToFloat64s(f32s), nil
 	case DDA:
-		f64s, err := readDDA(r)
+		f64s, err := readDDA(r, length)
 		if err != nil {
 			return nil, err
 		}
 		return f64s, nil
 	case DSB:
-		i16s, err := readDSB(r)
+		i16s, err := readDSB(r, length)
 		if err != nil {
 			return nil, err
 		}
 		return typeconverter.Int16sToFloat64s(i16s), nil
 	case DFB:
-		f32s, err := readDFB(r)
+		f32s, err := readDFB(r, length)
 		if err != nil {
 			return nil, err
 		}
 		return typeconverter.Float32sToFloat64s(f32s), nil
 	case DDB:
-		f64s, err := readDDB(r)
+		f64s, err := readDDB(r, length)
 		if err != nil {
 			return nil, err
 		}
@@ -169,62 +171,64 @@ func Read(r io.Reader, dt DataType) ([]float64, error) {
 // This func determines the data type from the filename extension and reads that data.
 // The return type is []float64 to make the data easier to handle.
 func ReadFromFile(filename string) ([]float64, error) {
-	f, err := os.Open(filename)
-	defer f.Close()
-	if err != nil {
-		return nil, err
-	}
-
 	dt, err := StringToDataType(ext(filename))
 	if err != nil {
 		return nil, err
 	}
-	return Read(f, dt)
+
+	b, err := ioutil.ReadFile(filename)
+	r := bytes.NewReader(b)
+	length := r.Len() / dt.ByteLen()
+	return Read(r, dt, length)
 }
 
-func readDSA(r io.Reader) ([]int16, error) {
+func readDSA(r io.Reader, length int) ([]int16, error) {
 	sc := bufio.NewScanner(r)
-	var data []int16
-	for sc.Scan() {
+	data := make([]int16, length)
+	for i := range data {
+		sc.Scan()
 		v, err := strconv.ParseInt(sc.Text(), 10, 16)
 		if err != nil {
 			return nil, err
 		}
-		data = append(data, int16(v))
+		data[i] = int16(v)
 	}
 	return data, nil
 }
 
-func readDFA(r io.Reader) ([]float32, error) {
+func readDFA(r io.Reader, length int) ([]float32, error) {
 	sc := bufio.NewScanner(r)
-	var data []float32
-	for sc.Scan() {
+	data := make([]float32, length)
+	for i := range data {
+		sc.Scan()
 		v, err := strconv.ParseFloat(sc.Text(), 32)
 		if err != nil {
 			return nil, err
 		}
 		data = append(data, float32(v))
+		data[i] = float32(v)
 	}
 	return data, nil
 }
 
-func readDDA(r io.Reader) ([]float64, error) {
+func readDDA(r io.Reader, length int) ([]float64, error) {
 	sc := bufio.NewScanner(r)
-	var data []float64
-	for sc.Scan() {
+	data := make([]float64, length)
+	for i := range data {
+		sc.Scan()
 		v, err := strconv.ParseFloat(sc.Text(), 64)
 		if err != nil {
 			return nil, err
 		}
-		data = append(data, v)
+		data[i] = v
 	}
 	return data, nil
 }
 
-func readDSB(r io.Reader) ([]int16, error) {
+func readDSB(r io.Reader, length int) ([]int16, error) {
 	buf := make([]byte, ByteLenShort)
-	var data []int16
-	for {
+	data := make([]int16, length)
+	for i := range data {
 		_, err := io.ReadFull(r, buf)
 		if err != nil {
 			if err == io.EOF {
@@ -236,14 +240,15 @@ func readDSB(r io.Reader) ([]int16, error) {
 		if err != nil {
 			return data, err
 		}
-		data = append(data, v)
+		data[i] = v
 	}
+	return data, nil
 }
 
-func readDFB(r io.Reader) ([]float32, error) {
+func readDFB(r io.Reader, length int) ([]float32, error) {
 	buf := make([]byte, ByteLenFloat)
-	var data []float32
-	for {
+	data := make([]float32, length)
+	for i := range data {
 		_, err := io.ReadFull(r, buf)
 		if err != nil {
 			if err == io.EOF {
@@ -255,14 +260,15 @@ func readDFB(r io.Reader) ([]float32, error) {
 		if err != nil {
 			return data, err
 		}
-		data = append(data, v)
+		data[i] = v
 	}
+	return data, nil
 }
 
-func readDDB(r io.Reader) ([]float64, error) {
+func readDDB(r io.Reader, length int) ([]float64, error) {
 	buf := make([]byte, ByteLenDouble)
-	var data []float64
-	for {
+	data := make([]float64, length)
+	for i := range data {
 		_, err := io.ReadFull(r, buf)
 		if err != nil {
 			if err == io.EOF {
@@ -274,29 +280,37 @@ func readDDB(r io.Reader) ([]float64, error) {
 		if err != nil {
 			return data, err
 		}
-		data = append(data, v)
+		data[i] = v
 	}
+	return data, nil
 }
 
 // Writes writes data to writer as specified data type.
 // The return type is []float64 to make the data easier to handle.
-func Write(r io.Writer, dt DataType, data []float64) error {
+func Write(w io.Writer, dt DataType, data []float64) error {
+	buf := &bytes.Buffer{}
+	var err error
 	switch dt {
 	case DSA:
-		return writeDSA(r, typeconverter.Float64sToInt16s(data))
+		err = writeDSA(buf, typeconverter.Float64sToInt16s(data))
 	case DFA:
-		return writeDFA(r, typeconverter.Float64sToFloat32s(data))
+		err = writeDFA(buf, typeconverter.Float64sToFloat32s(data))
 	case DDA:
-		return writeDDA(r, data)
+		err = writeDDA(buf, data)
 	case DSB:
-		return writeDSB(r, typeconverter.Float64sToInt16s(data))
+		err = writeDSB(buf, typeconverter.Float64sToInt16s(data))
 	case DFB:
-		return writeDFB(r, typeconverter.Float64sToFloat32s(data))
+		err = writeDFB(buf, typeconverter.Float64sToFloat32s(data))
 	case DDB:
-		return writeDDB(r, data)
+		err = writeDDB(buf, data)
 	default:
-		return ErrUnknownDataType
+		err = ErrUnknownDataType
 	}
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(w, buf)
+	return err
 }
 
 // Writes writes data to .DXX file.
@@ -316,40 +330,40 @@ func WriteToFile(filename string, data []float64) error {
 	return Write(f, dt, data)
 }
 
-func writeDSA(r io.Writer, data []int16) error {
+func writeDSA(w io.Writer, data []int16) error {
 	for _, v := range data {
-		if _, err := fmt.Fprintf(r, "%d\n", v); err != nil {
+		if _, err := fmt.Fprintf(w, "%d\n", v); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func writeDFA(r io.Writer, data []float32) error {
+func writeDFA(w io.Writer, data []float32) error {
 	for _, v := range data {
-		if _, err := fmt.Fprintf(r, "%e\n", v); err != nil {
+		if _, err := fmt.Fprintf(w, "%e\n", v); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func writeDDA(r io.Writer, data []float64) error {
+func writeDDA(w io.Writer, data []float64) error {
 	for _, v := range data {
-		if _, err := fmt.Fprintf(r, "%e\n", v); err != nil {
+		if _, err := fmt.Fprintf(w, "%e\n", v); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func writeDSB(r io.Writer, data []int16) error {
+func writeDSB(w io.Writer, data []int16) error {
 	for _, v := range data {
 		buf, err := typeconverter.Int16ToBytes(v)
 		if err != nil {
 			return err
 		}
-		_, err = r.Write(buf)
+		_, err = w.Write(buf)
 		if err != nil {
 			return err
 		}
@@ -357,13 +371,13 @@ func writeDSB(r io.Writer, data []int16) error {
 	return nil
 }
 
-func writeDFB(r io.Writer, data []float32) error {
+func writeDFB(w io.Writer, data []float32) error {
 	for _, v := range data {
 		buf, err := typeconverter.Float32ToBytes(v)
 		if err != nil {
 			return err
 		}
-		_, err = r.Write(buf)
+		_, err = w.Write(buf)
 		if err != nil {
 			return err
 		}
@@ -371,13 +385,13 @@ func writeDFB(r io.Writer, data []float32) error {
 	return nil
 }
 
-func writeDDB(r io.Writer, data []float64) error {
+func writeDDB(w io.Writer, data []float64) error {
 	for _, v := range data {
 		buf, err := typeconverter.Float64ToBytes(v)
 		if err != nil {
 			return err
 		}
-		_, err = r.Write(buf)
+		_, err = w.Write(buf)
 		if err != nil {
 			return err
 		}

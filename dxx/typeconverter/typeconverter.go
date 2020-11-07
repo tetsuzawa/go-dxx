@@ -46,9 +46,7 @@ func Int16ToBytes(v int16) ([]byte, error) {
 
 func Float32sToInt16s(data []float32) []int16 {
 	const amp = 1<<(16-1) - 1
-	absData := AbsFloat32s(data)
-	max := MaxFloat32s(absData)
-	min := MinFloat32s(absData)
+	_, min, max := AbsMinMaxFloat32s(data)
 
 	ret := make([]int16, len(data))
 	for i, v := range data {
@@ -63,9 +61,7 @@ func Float32sToInt16s(data []float32) []int16 {
 
 func Float64sToInt16s(data []float64) []int16 {
 	const amp = 1<<(16-1) - 1 // default amp for .DSX
-	absData := AbsFloat64s(data)
-	max := MaxFloat64s(absData)
-	min := MinFloat64s(absData)
+	_, min, max := AbsMinMaxFloat64s(data)
 
 	ret := make([]int16, len(data))
 	for i, v := range data {
@@ -80,9 +76,7 @@ func Float64sToInt16s(data []float64) []int16 {
 
 func Int16sToFloat32s(data []int16) []float32 {
 	const amp = 10000.0 // default amp for .DFX
-	absData := AbsInt16s(data)
-	max := MaxInt16s(absData)
-	min := MinInt16s(absData)
+	_, min, max := AbsMinMaxInt16s(data)
 
 	ret := make([]float32, len(data))
 	for i, v := range data {
@@ -97,9 +91,7 @@ func Int16sToFloat32s(data []int16) []float32 {
 
 func Int16sToFloat64s(data []int16) []float64 {
 	const amp = 10000.0 // default amp for .DDX
-	absData := AbsInt16s(data)
-	max := MaxInt16s(absData)
-	min := MinInt16s(absData)
+	_, min, max := AbsMinMaxInt16s(data)
 
 	ret := make([]float64, len(data))
 	for i, v := range data {
@@ -114,9 +106,8 @@ func Int16sToFloat64s(data []int16) []float64 {
 
 func Float32sToFloat64s(data []float32) []float64 {
 	const amp = 10000.0 // default amp for .DDX
-	absData := AbsFloat32s(data)
-	max := MaxFloat32s(absData)
-	min := MinFloat32s(absData)
+	_, min, max := AbsMinMaxFloat32s(data)
+
 
 	ret := make([]float64, len(data))
 	for i, v := range data {
@@ -131,9 +122,7 @@ func Float32sToFloat64s(data []float32) []float64 {
 
 func Float64sToFloat32s(data []float64) []float32 {
 	const amp = 10000.0 // default amp for .DDX
-	absData := AbsFloat64s(data)
-	max := MaxFloat64s(absData)
-	min := MinFloat64s(absData)
+	_, min, max := AbsMinMaxFloat64s(data)
 
 	ret := make([]float32, len(data))
 	for i, v := range data {
@@ -192,6 +181,48 @@ func AbsFloat64s(data []float64) []float64 {
 		ret[i] = AbsFloat64(v)
 	}
 	return ret
+}
+
+func AbsMinMaxInt16s(data []int16) (absData []int16, min, max int16) {
+	absData = make([]int16, len(data))
+	for i, v := range data {
+		vAbs := AbsInt16(v)
+		absData[i] = vAbs
+		if vAbs < min {
+			min = vAbs
+		} else if max < vAbs {
+			max = vAbs
+		}
+	}
+	return absData, min, max
+}
+
+func AbsMinMaxFloat32s(data []float32) (absData []float32, min, max float32) {
+	absData = make([]float32, len(data))
+	for i, v := range data {
+		vAbs := AbsFloat32(v)
+		absData[i] = vAbs
+		if vAbs < min {
+			min = vAbs
+		} else if max < vAbs {
+			max = vAbs
+		}
+	}
+	return absData, min, max
+}
+
+func AbsMinMaxFloat64s(data []float64) (absData []float64, min, max float64) {
+	absData = make([]float64, len(data))
+	for i, v := range data {
+		vAbs := AbsFloat64(v)
+		absData[i] = vAbs
+		if vAbs < min {
+			min = vAbs
+		} else if max < vAbs {
+			max = vAbs
+		}
+	}
+	return absData, min, max
 }
 
 func MaxInt16s(data []int16) int16 {
