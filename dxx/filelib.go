@@ -205,7 +205,6 @@ func readDFA(r io.Reader, length int) ([]float32, error) {
 		if err != nil {
 			return nil, err
 		}
-		data = append(data, float32(v))
 		data[i] = float32(v)
 	}
 	return data, nil
