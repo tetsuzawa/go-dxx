@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tetsuzawa/go-dxx/dxx/typeconverter"
+	"github.com/tetsuzawa/go-soundlib/dxx/typeconverter"
 )
 
 const (
