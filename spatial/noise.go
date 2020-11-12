@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/tetsuzawa/go-soundlib/dxx/typeconverter"
+	"github.com/tetsuzawa/go-soundlib/conv"
 )
 
 // PinkNoise generates pinknoise using Voss algorithm.
@@ -24,7 +24,7 @@ func PinkNoise(samples, fs int) []float64 {
 			out[i] = rand.NormFloat64() + Sum(xs)
 		}
 	}
-	normFactor := typeconverter.MaxFloat64s(typeconverter.AbsFloat64s(out))
+	normFactor := conv.MaxFloat64s(conv.AbsFloat64s(out))
 	for i, v := range out {
 		out[i] = v / normFactor
 	}

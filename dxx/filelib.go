@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tetsuzawa/go-soundlib/dxx/typeconverter"
+	"github.com/tetsuzawa/go-soundlib/typeconverter"
 )
 
 const (

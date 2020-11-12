@@ -1,4 +1,4 @@
-package typeconverter
+package conv
 
 import (
 	"bytes"
