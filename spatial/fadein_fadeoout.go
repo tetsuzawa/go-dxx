@@ -11,12 +11,12 @@ import (
 	"github.com/tetsuzawa/go-soundlib/dxx"
 )
 
-const (
-	repeatTimes  = 1
-	samplingFreq = 48 // [kHz]
-)
 
 func FadeinFadeout(subject, soundName string, moveWidth, moveVelocity, endAngle int, outDir string) error {
+	const (
+		repeatTimes  = 1
+		samplingFreq = 48 // [kHz]
+	)
 
 	// 移動時間 [ms]
 	var moveTime float64 = float64(moveWidth) * 1000.0 / float64(moveVelocity)
