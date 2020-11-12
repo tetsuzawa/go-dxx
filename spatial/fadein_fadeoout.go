@@ -2,12 +2,13 @@ package spatial
 
 import (
 	"fmt"
-	"github.com/mjibson/go-dsp/dsputils"
-	"github.com/mjibson/go-dsp/fft"
-	"github.com/tetsuzawa/go-dxx/dxx"
 	"log"
 	"math"
 	"os"
+
+	"github.com/mjibson/go-dsp/dsputils"
+	"github.com/mjibson/go-dsp/fft"
+	"github.com/tetsuzawa/go-soundlib/dxx"
 )
 
 const (

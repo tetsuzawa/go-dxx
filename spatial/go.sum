@@ -1,7 +1,5 @@
 github.com/mjibson/go-dsp v0.0.0-20180508042940-11479a337f12 h1:dd7vnTDfjtwCETZDrRe+GPYNLA1jBtbZeyfyE8eZCyk=
 github.com/mjibson/go-dsp v0.0.0-20180508042940-11479a337f12/go.mod h1:i/KKcxEWEO8Yyl11DYafRPKOPVYTrhxiTRigjtEEXZU=
-github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
-github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
-github.com/tetsuzawa/go-dxx v0.1.1 h1:FlOBh/DDpVza9BI5urYbhBrmktzKb4oia3QL5UIKjMY=
-github.com/tetsuzawa/go-dxx/dxx v0.0.0-20201103024326-3492fd6c05f1 h1:dQr6zwva9PJBB6YoqqA16Ikwu09hidTCLayt0uGrT7s=
-github.com/tetsuzawa/go-dxx/dxx v0.0.0-20201103024326-3492fd6c05f1/go.mod h1:Gk1DU5T9OuBn/aIuhSVbG6PmRTSitVnmM24glA783nI=
+github.com/tetsuzawa/go-soundlib v0.1.3 h1:p3tCzhMZYP/Tcs4RQ/1/x+C3QB3R5mOPVnfGPp1BPmE=
+github.com/tetsuzawa/go-soundlib/dxx v0.0.0-20201107045809-afaa9f209d07 h1:2Qm7OoKr6Lm1e58tScKvCiHl3pLtNdbto1UfHvtvCy8=
+github.com/tetsuzawa/go-soundlib/dxx v0.0.0-20201107045809-afaa9f209d07/go.mod h1:n9XaENJBDLc0+fz+y5XpW0ugSsED+ElRqO9WVwPbW/Q=
