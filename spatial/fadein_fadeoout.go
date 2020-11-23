@@ -11,7 +11,6 @@ import (
 	"github.com/tetsuzawa/go-soundlib/dxx"
 )
 
-
 func FadeinFadeout(subject, soundName string, moveWidth, moveVelocity, endAngle int, outDir string) error {
 	const (
 		repeatTimes  = 1
@@ -29,19 +28,7 @@ func FadeinFadeout(subject, soundName string, moveWidth, moveVelocity, endAngle 
 	var durationSamples int = dwellingSamples * 63 / 64
 	var overlapSamples int = dwellingSamples * 1 / 64
 
-	// Fourier Series Window Coefficient
-	a0 := (1 + math.Sqrt(2)) / 4
-	a1 := 0.25 + 0.25*math.Sqrt((5-2*math.Sqrt(2))/2)
-	a2 := (1 - math.Sqrt(2)) / 4
-	a3 := 0.25 - 0.25*math.Sqrt((5-2*math.Sqrt(2))/2)
-
-	// Fourier series window
-	fadeinFilt := make([]float64, overlapSamples)
-	fadeoutFilt := make([]float64, overlapSamples)
-	for i := 0; i < overlapSamples; i++ {
-		fadeinFilt[i] = a0 - a1*math.Cos(math.Pi/float64(overlapSamples)*float64(i)) + a2*math.Cos(2.0*math.Pi/float64(overlapSamples)*float64(i)) - a3*math.Cos(3.0*math.Pi/float64(overlapSamples)*float64(i))
-		fadeoutFilt[i] = a0 + a1*math.Cos(math.Pi/float64(overlapSamples)*float64(i)) + a2*math.Cos(2.0*math.Pi/float64(overlapSamples)*float64(i)) + a3*math.Cos(3.0*math.Pi/float64(overlapSamples)*float64(i))
-	}
+	fadeinFilter, fadeoutFilter := GenerateFadeinFadeoutFilt(overlapSamples)
 
 	// 音データの読み込み
 	sound, err := dxx.ReadFromFile(soundName)
@@ -86,8 +73,7 @@ func FadeinFadeout(subject, soundName string, moveWidth, moveVelocity, endAngle 
 				// 前の角度のfadeout部と現在の角度のfadein部の加算
 				fadein := make([]float64, overlapSamples)
 				for i := range fadein {
-					//fadein[i] = soundSLTF[len(soundSLTF)-overlapSamples+i] * fadeoutFilt[i]
-					fadein[i] = soundSLTF[i] * fadeinFilt[i]
+					fadein[i] = soundSLTF[i] * fadeinFilter[i]
 					moveOut[(durationSamples+overlapSamples)*angle+i] += fadein[i]
 				}
 
@@ -97,7 +83,7 @@ func FadeinFadeout(subject, soundName string, moveWidth, moveVelocity, endAngle 
 				// fadeout
 				fadeout := make([]float64, overlapSamples)
 				for i := range fadein {
-					fadeout[i] = soundSLTF[len(soundSLTF)-overlapSamples+i] * fadeoutFilt[i]
+					fadeout[i] = soundSLTF[len(soundSLTF)-overlapSamples+i] * fadeoutFilter[i]
 				}
 				moveOut = append(moveOut, fadeout...)
 			}
@@ -121,6 +107,25 @@ func FadeinFadeout(subject, soundName string, moveWidth, moveVelocity, endAngle 
 		}
 	}
 	return nil
+}
+
+func GenerateFadeinFadeoutFilt(length int) (fadeinFilt, fadeoutFilt []float64) {
+	// Fourier Series Window Coefficient
+	a0 := (1 + math.Sqrt(2)) / 4
+	a1 := 0.25 + 0.25*math.Sqrt((5-2*math.Sqrt(2))/2)
+	a2 := (1 - math.Sqrt(2)) / 4
+	a3 := 0.25 - 0.25*math.Sqrt((5-2*math.Sqrt(2))/2)
+
+	// Fourier series window
+	fadeinFilt = make([]float64, length)
+	fadeoutFilt = make([]float64, length)
+	flength := float64(length)
+	for i := 0; i < length; i++ {
+		f := float64(i)
+		fadeinFilt[i] = a0 - a1*math.Cos(math.Pi/flength*f) + a2*math.Cos(2.0*math.Pi/flength*f) - a3*math.Cos(3.0*math.Pi/flength*f)
+		fadeoutFilt[i] = a0 + a1*math.Cos(math.Pi/flength*f) + a2*math.Cos(2.0*math.Pi/flength*f) + a3*math.Cos(3.0*math.Pi/flength*f)
+	}
+	return fadeinFilt, fadeoutFilt
 }
 
 // LinearConvolution return linear convolution. len: len(x) + len(y) - 1

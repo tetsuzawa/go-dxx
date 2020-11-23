@@ -1,5 +1,8 @@
 github.com/mjibson/go-dsp v0.0.0-20180508042940-11479a337f12 h1:dd7vnTDfjtwCETZDrRe+GPYNLA1jBtbZeyfyE8eZCyk=
 github.com/mjibson/go-dsp v0.0.0-20180508042940-11479a337f12/go.mod h1:i/KKcxEWEO8Yyl11DYafRPKOPVYTrhxiTRigjtEEXZU=
 github.com/tetsuzawa/go-soundlib v0.1.3 h1:p3tCzhMZYP/Tcs4RQ/1/x+C3QB3R5mOPVnfGPp1BPmE=
+github.com/tetsuzawa/go-soundlib v0.1.4 h1:gKuuIxIUwokomNRnbfrZmTVSnkFC/vvwQIB6PuJWM60=
+github.com/tetsuzawa/go-soundlib/conv v0.0.0-20201112052528-458207e71658 h1:AHLfgWBrduCMayBVZkszjC50QAgtRKT94EEj7/LvIIQ=
+github.com/tetsuzawa/go-soundlib/conv v0.0.0-20201112052528-458207e71658/go.mod h1:krEW4M/aGRAlIKcgIW++52mcXkgr+bo0iXjMP8d5YLI=
 github.com/tetsuzawa/go-soundlib/dxx v0.0.0-20201107045809-afaa9f209d07 h1:2Qm7OoKr6Lm1e58tScKvCiHl3pLtNdbto1UfHvtvCy8=
 github.com/tetsuzawa/go-soundlib/dxx v0.0.0-20201107045809-afaa9f209d07/go.mod h1:n9XaENJBDLc0+fz+y5XpW0ugSsED+ElRqO9WVwPbW/Q=
