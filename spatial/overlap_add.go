@@ -70,7 +70,7 @@ func OverlapAdd(subject, soundName string, moveWidth, moveVelocity, endAngle int
 				//cutSound := sound[angle*(durationSamples+overlapSamples) : durationSamples*2+angle*(durationSamples+overlapSamples)+len(SLTF)*3+1]
 				cutSound := sound[dwellingSamples*angle : dwellingSamples*(angle+1)+1]
 				//soundSLTF := ToFloat64(LinearConvolution(dsputils.ToComplex(cutSound), dsputils.ToComplex(SLTF)))
-				soundSLTF := LinearConvolution2(cutSound, SLTF)
+				soundSLTF := LinearConvolutionTimeDomain(cutSound, SLTF)
 				if angle == moveWidth-1 {
 					fmt.Println(len(soundSLTF)*angle + len(soundSLTF))
 				}
@@ -96,16 +96,4 @@ func OverlapAdd(subject, soundName string, moveWidth, moveVelocity, endAngle int
 		}
 	}
 	return nil
-}
-
-func LinearConvolution2(x, y []float64) []float64 {
-	convLen := len(x) + len(y) - 1
-	res := make([]float64, convLen)
-	for p := 0; p < len(x); p++ {
-		for n := p; n < len(y)+p; n++ {
-			res[n] += x[p] * y[n-p]
-
-		}
-	}
-	return res
 }

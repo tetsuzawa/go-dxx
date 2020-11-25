@@ -2,12 +2,9 @@ package spatial
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"os"
 
-	"github.com/mjibson/go-dsp/dsputils"
-	"github.com/mjibson/go-dsp/fft"
 	"github.com/tetsuzawa/go-soundlib/dxx"
 )
 
@@ -38,8 +35,8 @@ func FadeinFadeout(subject, soundName string, moveWidth, moveVelocity, endAngle 
 
 	for _, direction := range []string{"c", "cc"} {
 		for _, LR := range []string{"L", "R"} {
-			moveOut := make([]float64, overlapSamples)
-			usedAngles := make([]int, 0)
+			moveOut := make([]float64, dwellingSamples, int(moveTime)*samplingFreq)
+			usedAngles := make([]int, moveAngle*2-1)
 
 			for angle := 0; angle < (moveAngle*2 - 1); angle++ {
 				// ノコギリ波の生成
@@ -62,12 +59,12 @@ func FadeinFadeout(subject, soundName string, moveWidth, moveVelocity, endAngle 
 				if err != nil {
 					return err
 				}
-				usedAngles = append(usedAngles, (endAngle+dataAngle)%3600)
+				usedAngles[angle] = (endAngle + dataAngle) % 3600
 
 				// Fadein-Fadeout
 				// 音データと伝達関数の畳込み
 				cutSound := sound[angle*(durationSamples+overlapSamples) : durationSamples*2+angle*(durationSamples+overlapSamples)+len(SLTF)*3+1]
-				soundSLTF := ToFloat64(LinearConvolution(dsputils.ToComplex(cutSound), dsputils.ToComplex(SLTF)))
+				soundSLTF := LinearConvolutionTimeDomain(cutSound, SLTF)
 				// 無音区間の切り出し
 				soundSLTF = soundSLTF[len(SLTF)*2 : len(soundSLTF)-len(SLTF)*2]
 				// 前の角度のfadeout部と現在の角度のfadein部の加算
@@ -126,23 +123,4 @@ func GenerateFadeinFadeoutFilt(length int) (fadeinFilt, fadeoutFilt []float64) {
 		fadeoutFilt[i] = a0 + a1*math.Cos(math.Pi/flength*f) + a2*math.Cos(2.0*math.Pi/flength*f) + a3*math.Cos(3.0*math.Pi/flength*f)
 	}
 	return fadeinFilt, fadeoutFilt
-}
-
-// LinearConvolution return linear convolution. len: len(x) + len(y) - 1
-func LinearConvolution(x, y []complex128) []complex128 {
-	convLen := len(x) + len(y) - 1
-	xPad := dsputils.ZeroPad(x, convLen)
-	yPad := dsputils.ZeroPad(y, convLen)
-	if len(xPad) != convLen {
-		log.Fatalln("len err")
-	}
-	return fft.Convolve(xPad, yPad)
-}
-
-func ToFloat64(x []complex128) []float64 {
-	y := make([]float64, len(x))
-	for n, v := range x {
-		y[n] = real(v)
-	}
-	return y
 }
