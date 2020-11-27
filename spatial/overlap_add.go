@@ -8,21 +8,16 @@ import (
 )
 
 func OverlapAdd(subject, soundName string, moveWidth, moveVelocity, endAngle int, outDir string) error {
-	const (
-		repeatTimes  = 1
-		samplingFreq = 48 // [kHz]
-	)
+	// サンプリング周波数 [sample/sec]
+	const samplingFreq = 48000
+	// 移動時間 [sec]
+	var moveTime float64 = float64(moveWidth) / float64(moveVelocity)
+	// 移動時間 [sample]
+	var moveSamples int = int(moveTime * samplingFreq)
 
-	// 移動時間 [ms]
-	var moveTime float64 = float64(moveWidth) * 1000.0 / float64(moveVelocity)
-	var moveSamples int = int(moveTime) * samplingFreq
-	// 移動角度
-
-	// 1度動くのに必要なサンプル数
-	// [ms]*[kHz] / [deg] = [sample/deg]
-	var dwellingSamples int = moveSamples / moveWidth
-	//var durationSamples int = dwellingSamples * 63 / 64
-	//var overlapSamples int = dwellingSamples * 1 / 64
+	// 0.1度動くのに必要なサンプル数
+	// [sec]*[sample/sec] / [0.1deg] = [sample/0.1deg]
+	var moveSamplesPerDeg int = moveSamples / moveWidth
 
 	// 音データの読み込み
 	sound, err := dxx.ReadFromFile(soundName)
@@ -38,14 +33,12 @@ func OverlapAdd(subject, soundName string, moveWidth, moveVelocity, endAngle int
 
 	for _, direction := range []string{"c", "cc"} {
 		for _, LR := range []string{"L", "R"} {
-			//moveOut := make([]float64, overlapSamples)
 			moveOut := make([]float64, moveSamples+len(SLTF)-1)
 			usedAngles := make([]int, moveWidth)
 
 			for angle := 0; angle < moveWidth; angle++ {
-				// ノコギリ波の生成
+				// 畳み込むSLTFの角度を決定
 				dataAngle := angle % (moveWidth * 2)
-				// ノコギリ波から三角波を生成
 				if dataAngle > moveWidth {
 					dataAngle = moveWidth*2 - dataAngle
 				}
@@ -56,6 +49,8 @@ func OverlapAdd(subject, soundName string, moveWidth, moveVelocity, endAngle int
 				if dataAngle < 0 {
 					dataAngle += 3600
 				}
+				// 使用した角度を記録（ログ出力用）
+				usedAngles[angle] = (endAngle + dataAngle) % 3600
 
 				// SLTFの読み込み
 				SLTFName := fmt.Sprintf("%s/SLTF/SLTF_%d_%s.DDB", subject, (endAngle+dataAngle)%3600, LR)
@@ -63,21 +58,14 @@ func OverlapAdd(subject, soundName string, moveWidth, moveVelocity, endAngle int
 				if err != nil {
 					return err
 				}
-				usedAngles[angle] = (endAngle + dataAngle) % 3600
 
-				// Fadein-Fadeout
 				// 音データと伝達関数の畳込み
-				//cutSound := sound[angle*(durationSamples+overlapSamples) : durationSamples*2+angle*(durationSamples+overlapSamples)+len(SLTF)*3+1]
-				cutSound := sound[dwellingSamples*angle : dwellingSamples*(angle+1)+1]
-				//soundSLTF := ToFloat64(LinearConvolution(dsputils.ToComplex(cutSound), dsputils.ToComplex(SLTF)))
+				cutSound := sound[moveSamplesPerDeg*angle : moveSamplesPerDeg*(angle+1)]
 				soundSLTF := LinearConvolutionTimeDomain(cutSound, SLTF)
-				if angle == moveWidth-1 {
-					fmt.Println(len(soundSLTF)*angle + len(soundSLTF))
-				}
+				// Overlap-Add
 				for i, v := range soundSLTF {
-					moveOut[dwellingSamples*angle+i] += v
+					moveOut[moveSamplesPerDeg*angle+i] += v
 				}
-
 			}
 
 			// DDBへ出力
